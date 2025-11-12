@@ -118,6 +118,7 @@ docker pull registry.cn-hangzhou.aliyuncs.com/your_namespace/helloworld:commit_s
 - Node.js + nvm
 - Java + SDKMAN
 - Zsh + Oh My Zsh
+- **VSCode Tunnel** - 通过本地 VSCode 远程连接（GitHub 认证）
 - 详细说明请查看 `devcontainer/README.md`
 
 **使用示例**：
@@ -130,4 +131,10 @@ docker run -it --privileged --network=host \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v $(pwd):/workspace \
   registry.cn-hangzhou.aliyuncs.com/your_namespace/devcontainer:latest
+
+# 启动 Docker 和 VSCode Tunnel
+dockerd > /var/log/dockerd.log 2>&1 &
+code tunnel --name my-dev
+
+# 然后在本地 VSCode 中连接！
 ```

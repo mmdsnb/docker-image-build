@@ -228,7 +228,28 @@ EOF
 RUN chmod 600 /root/.ssh/config
 
 # ============================================
-# 阶段 8: 最终配置
+# 阶段 8: 安装 VSCode CLI (支持 Tunnel)
+# ============================================
+
+# 安装 VSCode CLI（支持远程隧道连接）
+RUN ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then \
+        VSCODE_ARCH="x64"; \
+    elif [ "$ARCH" = "aarch64" ]; then \
+        VSCODE_ARCH="arm64"; \
+    else \
+        echo "不支持的架构: $ARCH" && exit 1; \
+    fi && \
+    echo "下载 VSCode CLI for ${VSCODE_ARCH}..." && \
+    curl -fSL "https://code.visualstudio.com/sha/download?build=stable&os=cli-alpine-${VSCODE_ARCH}" \
+        --output /tmp/vscode-cli.tar.gz && \
+    tar -xzf /tmp/vscode-cli.tar.gz -C /usr/local/bin && \
+    rm /tmp/vscode-cli.tar.gz && \
+    code --version && \
+    echo "✅ VSCode CLI 安装成功"
+
+# ============================================
+# 阶段 9: 最终配置
 # ============================================
 
 # 创建工作目录

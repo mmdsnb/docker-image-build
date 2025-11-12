@@ -35,6 +35,9 @@
 - 插件：autosuggestions、syntax-highlighting
 - 预设别名：d, dc, dps, di, ll
 
+#### 编辑器
+- **VSCode CLI**: 支持 Remote Tunnels（通过本地 VSCode 连接）
+
 ## 🚀 构建方式
 
 ### 使用 GitHub Actions 构建（推荐）
@@ -117,9 +120,61 @@ docker --version
 
 # 启动 SSH 服务（可选）
 service ssh start
+
+# 启动 VSCode Tunnel（可选，用于远程开发）
+code tunnel --accept-server-license-terms --name my-dev
+# 首次启动会提示 GitHub 认证
 ```
 
 **推荐方式**：长期运行容器，服务启动一次即可。
+
+### 使用 VSCode Tunnel 远程开发
+
+VSCode Tunnel 允许你通过**本地 VSCode 桌面版**连接到容器进行开发。
+
+#### 首次设置
+
+1. **在容器内启动 tunnel**：
+   ```bash
+   code tunnel --accept-server-license-terms --name my-dev
+   ```
+
+2. **GitHub 认证**：
+   - 终端会显示一个 URL 和验证码
+   - 在浏览器打开 URL：`https://github.com/login/device`
+   - 输入验证码
+   - 授权后，tunnel 启动成功
+
+3. **本地 VSCode 连接**：
+   - 打开本地 VSCode 桌面版
+   - 按 `F1`（或 `Ctrl+Shift+P`）
+   - 输入：`Remote-Tunnels: Connect to Tunnel`
+   - 选择登录方式：`GitHub`
+   - 选择你的 tunnel 名称：`my-dev`
+   - 开始开发！
+
+#### 后台运行 Tunnel
+
+如果想让 tunnel 在后台运行：
+
+```bash
+# 后台运行
+nohup code tunnel --accept-server-license-terms --name my-dev > /var/log/vscode-tunnel.log 2>&1 &
+
+# 查看日志
+tail -f /var/log/vscode-tunnel.log
+
+# 停止 tunnel
+pkill -f "code tunnel"
+```
+
+#### 优势
+
+- ✅ 100% 原生 VSCode 体验（完全等同于本地开发）
+- ✅ 无需暴露端口或配置防火墙
+- ✅ 通过 GitHub 安全认证
+- ✅ 支持所有 VSCode 插件和功能
+- ✅ 适合长期运行的开发容器
 
 ### 安装 Node.js 版本
 
@@ -272,6 +327,33 @@ ls -la /var/run/docker.sock
 # 检查镜像名称是否正确
 # 确保已在 GitHub 中构建完成
 # 检查阿里云镜像仓库配置
+```
+
+### VSCode Tunnel 无法连接
+
+```bash
+# 测试网络连接
+curl -I https://global.rel.tunnels.api.visualstudio.com
+
+# 检查 tunnel 是否在运行
+ps aux | grep "code tunnel"
+
+# 查看 tunnel 日志
+cat /var/log/vscode-tunnel.log
+
+# 重新启动 tunnel
+pkill -f "code tunnel"
+code tunnel --accept-server-license-terms --name my-dev
+```
+
+### 忘记 Tunnel 名称
+
+```bash
+# 查看当前运行的 tunnel
+ps aux | grep "code tunnel"
+
+# 或者在本地 VSCode 中查看所有可用 tunnels
+# F1 → Remote-Tunnels: Connect to Tunnel → 会列出所有 tunnel
 ```
 
 ## 🎨 自定义配置
