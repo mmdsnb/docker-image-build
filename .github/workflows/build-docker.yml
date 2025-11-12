@@ -1,0 +1,65 @@
+name: Build and Push Docker Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_name:
+        description: '输入要构建的镜像名称（如：helloworld）'
+        required: true
+        type: string
+        default: 'helloworld'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout 代码
+        uses: actions/checkout@v4
+
+      - name: 验证镜像目录
+        run: |
+          if [ ! -d "${{ inputs.image_name }}" ]; then
+            echo "❌ 错误: 目录 '${{ inputs.image_name }}' 不存在"
+            echo "📁 可用的镜像目录："
+            find . -maxdepth 2 -name "Dockerfile" -exec dirname {} \; | sed 's|./||' | sort
+            exit 1
+          fi
+          if [ ! -f "${{ inputs.image_name }}/Dockerfile" ]; then
+            echo "❌ 错误: 目录 '${{ inputs.image_name }}' 中没有 Dockerfile"
+            exit 1
+          fi
+          echo "✅ 验证通过: ${{ inputs.image_name }}/Dockerfile 存在"
+
+      - name: 设置 QEMU（多平台支持）
+        uses: docker/setup-qemu-action@v3
+
+      - name: 设置 Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 登录阿里云镜像仓库
+        uses: docker/login-action@v3
+        with:
+          registry: registry.cn-hangzhou.aliyuncs.com
+          username: ${{ secrets.ALIYUN_USERNAME }}
+          password: ${{ secrets.ALIYUN_PASSWORD }}
+
+      - name: 构建并推送镜像
+        uses: docker/build-push-action@v5
+        with:
+          context: ./${{ inputs.image_name }}
+          file: ./${{ inputs.image_name }}/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            registry.cn-hangzhou.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACE }}/${{ inputs.image_name }}:latest
+            registry.cn-hangzhou.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACE }}/${{ inputs.image_name }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: 构建完成
+        run: |
+          echo "✅ 镜像构建成功！"
+          echo "📦 镜像名称: ${{ inputs.image_name }}"
+          echo "🏷️  镜像标签: latest, ${{ github.sha }}"
+          echo "🚀 推送地址: registry.cn-hangzhou.aliyuncs.com/${{ secrets.ALIYUN_NAMESPACE }}/${{ inputs.image_name }}"
