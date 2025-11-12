@@ -17,7 +17,10 @@
 ```
 .
 ├── helloworld/
-│   └── Dockerfile          # Hello World 镜像的 Dockerfile
+│   └── Dockerfile          # Hello World 示例镜像
+├── devcontainer/
+│   ├── Dockerfile          # 全栈开发环境镜像
+│   └── README.md           # 详细使用说明
 └── .github/
     └── workflows/
         └── build-docker.yml # GitHub Actions 工作流
@@ -61,7 +64,9 @@ EOF
 2. 点击 `Actions` 标签页
 3. 选择 `Build and Push Docker Image` 工作流
 4. 点击 `Run workflow` 按钮
-5. 在输入框中输入要构建的镜像名称（如 `helloworld`）
+5. 在输入框中输入要构建的镜像名称：
+   - `helloworld` - Hello World 示例镜像
+   - `devcontainer` - 全栈开发环境镜像（推荐）
 6. 点击 `Run workflow` 确认
 
 **自动验证**：
@@ -100,3 +105,29 @@ docker pull registry.cn-hangzhou.aliyuncs.com/your_namespace/helloworld:commit_s
 - `linux/arm64` (ARM64/aarch64)
 
 如需添加更多平台，可修改 workflow 中的 `platforms` 配置。
+
+## 📦 可用镜像
+
+### helloworld
+简单的 Hello World 示例镜像，用于测试工作流。
+
+### devcontainer（推荐）
+完整的全栈开发环境镜像，包含：
+- Docker-in-Docker 支持
+- Python + uv
+- Node.js + nvm
+- Java + SDKMAN
+- Zsh + Oh My Zsh
+- 详细说明请查看 `devcontainer/README.md`
+
+**使用示例**：
+```bash
+# 拉取镜像
+docker pull registry.cn-hangzhou.aliyuncs.com/your_namespace/devcontainer:latest
+
+# 运行开发环境
+docker run -it --privileged --network=host \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v $(pwd):/workspace \
+  registry.cn-hangzhou.aliyuncs.com/your_namespace/devcontainer:latest
+```
